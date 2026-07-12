@@ -62,7 +62,7 @@ class ResultsView(QWidget):
         
         # --- Score Banner (Passed / Failed indicator) ---
         self.banner_frame = QFrame(self)
-        self.banner_frame.setObjectName("card")
+        self.banner_frame.setObjectName("banner_frame")
         self.banner_frame.setMaximumHeight(90)
         
         banner_layout = QHBoxLayout(self.banner_frame)
@@ -139,7 +139,7 @@ class ResultsView(QWidget):
         
         # Style banner depending on status
         bg_color = "#069669" if passed else "#dc2626"
-        self.banner_frame.setStyleSheet(f"background-color: {bg_color}; border: none; border-radius: 12px;")
+        self.banner_frame.setStyleSheet(f"QFrame#banner_frame {{ background-color: {bg_color}; border: none; border-radius: 12px; }}")
         self.banner_status_lbl.setText("PASSED" if passed else "FAILED")
         self.banner_status_lbl.setStyleSheet("font-size: 26px; font-weight: 800; color: #ffffff;")
         self.score_lbl.setText(f"Score: {pct}% ({correct} / {total} questions)")

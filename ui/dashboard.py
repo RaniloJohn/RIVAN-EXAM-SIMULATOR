@@ -136,7 +136,8 @@ class DashboardView(QWidget):
             
             for session in recent_sessions:
                 sess_card = QFrame()
-                sess_card.setStyleSheet("border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 5px;")
+                sess_card.setObjectName("sess_card")
+                sess_card.setStyleSheet("QFrame#sess_card { border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 5px; }")
                 sess_layout = QVBoxLayout(sess_card)
                 sess_layout.setContentsMargins(0, 0, 0, 0)
                 
