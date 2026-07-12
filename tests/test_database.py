@@ -114,5 +114,31 @@ class TestDatabase(unittest.TestCase):
         self.assertEqual(score["correct"], 3)
         self.assertTrue(score["passed"])
 
+    def test_session_scoring_subset(self):
+        exam_id = self.db.create_exam("Subset Exam", passing_score=80)
+        q1 = self.db.add_question(exam_id, 1, "Sec", "Q1", "single")
+        q2 = self.db.add_question(exam_id, 2, "Sec", "Q2", "single")
+        q3 = self.db.add_question(exam_id, 3, "Sec", "Q3", "single")
+        q4 = self.db.add_question(exam_id, 4, "Sec", "Q4", "single")
+        
+        self.db.add_choices(q1, [("A", "C1", 1), ("B", "C2", 0)])
+        self.db.add_choices(q2, [("A", "C1", 1), ("B", "C2", 0)])
+        self.db.add_choices(q3, [("A", "C1", 1), ("B", "C2", 0)])
+        self.db.add_choices(q4, [("A", "C1", 1), ("B", "C2", 0)])
+        
+        # Start session with only q1, q2, q3 ordered
+        order_str = f"{q1},{q2},{q3}"
+        session_id = self.db.start_session(exam_id, question_order=order_str)
+        
+        self.db.set_session_answer(session_id, q1, "A")  # Correct
+        self.db.set_session_answer(session_id, q2, "A")  # Correct
+        self.db.set_session_answer(session_id, q3, "B")  # Incorrect
+        
+        score = self.db.calculate_score(session_id)
+        # Total questions evaluated should be 3 (from question_order), not 4 (total exam questions)
+        self.assertEqual(score["total"], 3)
+        self.assertEqual(score["correct"], 2)
+        self.assertEqual(score["percentage"], 66.7)
+
 if __name__ == "__main__":
     unittest.main()

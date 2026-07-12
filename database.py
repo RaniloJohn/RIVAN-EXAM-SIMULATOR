@@ -431,6 +431,14 @@ class Database:
         
         exam_id = session['exam_id']
         questions = self.get_questions(exam_id)
+        
+        # Filter questions based on session's specific question order if present
+        order_str = session.get('question_order')
+        if order_str:
+            q_id_order = [int(x) for x in order_str.split(",") if x.strip()]
+            q_dict = {q["id"]: q for q in questions}
+            questions = [q_dict[qid] for qid in q_id_order if qid in q_dict]
+            
         responses = self.get_session_responses(session_id)
         
         correct_count = 0

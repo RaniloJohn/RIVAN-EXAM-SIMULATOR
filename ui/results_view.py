@@ -63,9 +63,10 @@ class ResultsView(QWidget):
         # --- Score Banner (Passed / Failed indicator) ---
         self.banner_frame = QFrame(self)
         self.banner_frame.setObjectName("card")
+        self.banner_frame.setMaximumHeight(90)
         
         banner_layout = QHBoxLayout(self.banner_frame)
-        banner_layout.setContentsMargins(25, 20, 25, 20)
+        banner_layout.setContentsMargins(25, 12, 25, 12)
         
         score_layout = QVBoxLayout()
         self.banner_status_lbl = QLabel("PASSED", self.banner_frame)
