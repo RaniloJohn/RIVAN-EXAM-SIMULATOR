@@ -493,21 +493,9 @@ class SimulatorView(QWidget):
             # Shuffling choices in each question object if enabled
             if self.shuffle_choices:
                 for q in self.questions:
-                    # choices is list of dicts: [ {id, choice_letter, choice_text, is_correct}, ... ]
                     shuffled_choices = list(q["choices"])
                     random.shuffle(shuffled_choices)
-                    # Rewrite choice_letter to maintain A, B, C order in UI display
-                    letters = [chr(ord('A') + i) for i in range(len(shuffled_choices))]
-                    updated_choices = []
-                    for letter, c in zip(letters, shuffled_choices):
-                        # Construct choices formatted as database rows for evaluate
-                        updated_choices.append({
-                            "id": c["id"],
-                            "choice_letter": letter,
-                            "choice_text": c["choice_text"],
-                            "is_correct": c["is_correct"]
-                        })
-                    q["choices"] = updated_choices
+                    q["choices"] = shuffled_choices
             
             # Save session order
             order_str = ",".join(str(q["id"]) for q in self.questions)
@@ -664,7 +652,7 @@ class SimulatorView(QWidget):
         if self.is_study_mode and self.is_submitted.get(q_id):
             is_correct = self.db._evaluate_correctness(q, resp["selected"])
             status_text = "<font color='#10b981'><b>✓ CORRECT</b></font>" if is_correct else f"<font color='#ef4444'><b>✗ INCORRECT</b></font>"
-            correct_letters = ", ".join([c["choice_letter"] for c in q["choices"] if c["is_correct"]])
+            correct_letters = ", ".join([c.get("display_letter", c["choice_letter"]) for c in q["choices"] if c["is_correct"]])
             
             exp_box = f"""
             <div class="explanation-box">
@@ -731,12 +719,14 @@ class SimulatorView(QWidget):
         
         if q_type == "single" or q_type == "tf":
             self.choice_radios = []
-            for c in q["choices"]:
+            letters = [chr(ord('A') + i) for i in range(len(q["choices"]))]
+            for display_letter, c in zip(letters, q["choices"]):
                 letter = c["choice_letter"]
                 text = c["choice_text"]
+                c["display_letter"] = display_letter
                 
                 # Format: "A. Option Text"
-                radio = QRadioButton(f"{letter}.  {text}", self.answers_frame)
+                radio = QRadioButton(f"{display_letter}.  {text}", self.answers_frame)
                 radio.setEnabled(not is_disabled)
                 radio.setAutoExclusive(True)
                 
@@ -755,17 +745,20 @@ class SimulatorView(QWidget):
                 
                 # Save mapping
                 radio.letter = letter
+                radio.display_letter = display_letter
                 
         elif q_type == "multiple":
             self.choice_checkboxes = []
             selected_letters = selected_val.split(",") if selected_val else []
             selected_letters = [x.strip() for x in selected_letters]
+            letters = [chr(ord('A') + i) for i in range(len(q["choices"]))]
             
-            for c in q["choices"]:
+            for display_letter, c in zip(letters, q["choices"]):
                 letter = c["choice_letter"]
                 text = c["choice_text"]
+                c["display_letter"] = display_letter
                 
-                chk = QCheckBox(f"{letter}.  {text}", self.answers_frame)
+                chk = QCheckBox(f"{display_letter}.  {text}", self.answers_frame)
                 chk.setEnabled(not is_disabled)
                 
                 if letter in selected_letters:
@@ -780,6 +773,7 @@ class SimulatorView(QWidget):
                 self.answers_layout.addWidget(chk)
                 self.choice_checkboxes.append(chk)
                 chk.letter = letter
+                chk.display_letter = display_letter
                 
         elif q_type == "fill":
             self.answers_layout.addWidget(QLabel("Type your answer below:"))
@@ -1119,12 +1113,12 @@ class SimulatorView(QWidget):
             
         if q["question_type"] in ["single", "tf"]:
             for btn in self.choice_radios:
-                if btn.letter == letter:
+                if getattr(btn, 'display_letter', btn.letter) == letter:
                     btn.setChecked(True)
                     break
         elif q["question_type"] == "multiple":
             for chk in self.choice_checkboxes:
-                if chk.letter == letter:
+                if getattr(chk, 'display_letter', chk.letter) == letter:
                     chk.setChecked(not chk.isChecked())
                     break
 

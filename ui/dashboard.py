@@ -271,7 +271,7 @@ class DashboardView(QWidget):
         shuffling_layout.addWidget(shuffle_q_chk)
         
         shuffle_c_chk = QCheckBox("Randomize choice/answer options order", shuffling_box)
-        shuffle_c_chk.setChecked(True)
+        shuffle_c_chk.setChecked(False)
         shuffling_layout.addWidget(shuffle_c_chk)
         layout.addWidget(shuffling_box)
         
